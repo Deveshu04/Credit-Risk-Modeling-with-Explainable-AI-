@@ -1,0 +1,15 @@
+{
+  "id": "deveshupathak/credit-risk-05-explainability-scorecard",
+  "title": "Credit Risk 05 Explainability Scorecard",
+  "code_file": "05-explainability-scorecard.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": ["deveshupathak/credit-risk-02-features", "deveshupathak/credit-risk-04-training"],
+  "model_sources": []
+}
