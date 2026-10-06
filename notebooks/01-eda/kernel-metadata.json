@@ -1,0 +1,15 @@
+{
+  "id": "deveshupathak/credit-risk-01-eda",
+  "title": "Credit Risk 01 EDA",
+  "code_file": "01-eda.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": ["home-credit-default-risk"],
+  "kernel_sources": [],
+  "model_sources": []
+}

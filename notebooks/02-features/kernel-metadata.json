@@ -1,0 +1,15 @@
+{
+  "id": "deveshupathak/credit-risk-02-features",
+  "title": "Credit Risk 02 Features",
+  "code_file": "02-features.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": ["home-credit-default-risk"],
+  "kernel_sources": [],
+  "model_sources": []
+}
