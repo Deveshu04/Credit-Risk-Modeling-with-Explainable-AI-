@@ -22,7 +22,9 @@ Scorecard validation on the holdout: default rates rise strictly across all 10 g
 
 ## Live dashboard
 
-The dashboard runs on Render's free tier, which puts the service to sleep after 15 minutes without traffic. The first visit after a quiet spell can take up to a minute while it wakes; after that, pages and live scoring respond immediately.
+**[credit-risk-xai-z7db.onrender.com](https://credit-risk-xai-z7db.onrender.com)**
+
+The dashboard runs on Render's free tier, which puts the service to sleep after 15 minutes without traffic. The first visit after a quiet spell takes about 40 seconds while it wakes (a measured cold start took 41 seconds); after that, pages and live scoring respond in about a second.
 
 Four pages:
 
