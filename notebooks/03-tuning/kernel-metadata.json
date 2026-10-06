@@ -1,0 +1,15 @@
+{
+  "id": "deveshupathak/credit-risk-03-tuning",
+  "title": "Credit Risk 03 Tuning",
+  "code_file": "03-tuning.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": ["deveshupathak/credit-risk-02-features"],
+  "model_sources": []
+}
