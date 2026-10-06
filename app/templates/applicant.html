@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_scale.html" import rating_strip %}
+{% block title %}Applicant explorer | Credit Risk XAI{% endblock %}
+{% block content %}
+<section>
+  <h1>Applicant explorer</h1>
+  <p class="lede">Score any of {{ "{:,}".format(sample_size) }} holdout applicants live. The waterfall shows how each feature moves the log-odds of default away from the model's base value. Change the strongest drivers to see how PD, grade and capital respond.</p>
+</section>
+<div class="controls">
+  <label class="field">Applicant ID <input id="applicant-id" type="number" inputmode="numeric"></label>
+  <button id="load" class="primary" type="button">Load applicant</button>
+  <button id="random" type="button">Random applicant</button>
+  <label class="field">Grade <select id="grade">{% for g in grades %}<option value="{{ g }}">{{ g }}</option>{% endfor %}</select></label>
+  <button id="random-grade" type="button">Random from this grade</button>
+  <label class="field">Loss given default <output id="lgd-value">{{ (card.lgd_default * 100)|round|int }}%</output>
+    <input id="lgd" type="range" min="{{ (card.lgd_floor * 100)|round|int }}" max="100" step="1" value="{{ (card.lgd_default * 100)|round|int }}">
+  </label>
+</div>
+<p id="error" class="error" role="alert"></p>
+<dl class="figures" id="result"></dl>
+<p id="segments" class="facts"></p>
+<section class="scale-wrap">
+  {{ rating_strip(card.grades) }}
+</section>
+<div class="grid two">
+  <section class="panel"><h2>Why this score</h2><p class="panel-note">Red bars raise the risk of default, blue bars lower it.</p><div id="waterfall" class="chart tall"></div></section>
+  <section class="panel">
+    <h2>What if</h2>
+    <p class="panel-note">The eight features that move this applicant's score most. Values outside the training range are clipped to it.</p>
+    <form id="whatif">
+      <div id="drivers" class="drivers"></div>
+      <div class="whatif-actions">
+        <button type="submit" class="primary">Rescore</button>
+        <button type="button" id="reset">Reset values</button>
+      </div>
+      <p id="clipped" class="note"></p>
+    </form>
+  </section>
+</div>
+<script id="segment-labels" type="application/json">{{ segments | tojson }}</script>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/applicant.js') }}"></script>{% endblock %}

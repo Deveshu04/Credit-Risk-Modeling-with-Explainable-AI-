@@ -1,0 +1,19 @@
+{% macro score_range(g) -%}
+{%- if g.score_min is none -%}scores below {{ g.score_max|int }}
+{%- elif g.score_max is none -%}scores {{ g.score_min|int }} and above
+{%- else -%}scores {{ g.score_min|int }} to {{ g.score_max|int }}{%- endif -%}
+{%- endmacro %}
+
+{% macro rating_strip(grades) %}
+{% set n = grades|length %}
+<ol class="scale" aria-label="Master scale, grade 1 lowest risk">
+  {% for g in grades %}
+  {% set step = (((g.grade - 1) * 9 / (n - 1)) if n > 1 else 0)|round|int %}
+  <li class="scale-cell" data-grade="{{ g.grade }}" style="--cell: var(--ramp-{{ step }})" title="Grade {{ g.grade }}: {{ score_range(g) }}, PD {{ '%.2f'|format(g.pd * 100) }}%">
+    <span class="scale-bar"></span>
+    <span class="scale-grade">{{ g.grade }}</span>
+    <span class="scale-pd">{{ "%.2f"|format(g.pd * 100) }}%</span>
+  </li>
+  {% endfor %}
+</ol>
+{% endmacro %}

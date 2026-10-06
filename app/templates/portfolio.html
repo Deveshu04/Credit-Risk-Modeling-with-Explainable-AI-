@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_scale.html" import rating_strip %}
+{% block title %}Portfolio and capital | Credit Risk XAI{% endblock %}
+{% block content %}
+<section>
+  <h1>Portfolio and Basel capital</h1>
+  <p class="lede">Every holdout applicant mapped to a {{ card.grades|length }}-grade master scale. Capital follows the Basel IRB formula for other retail exposures, using the pooled grade PD (floored at {{ "%.2f"|format(card.pd_floor * 100) }}%) and exposure at default equal to the credit amount.</p>
+</section>
+<section class="scale-wrap">
+  {{ rating_strip(card.grades) }}
+  <p class="note">Grade 1 is the lowest risk. The percentage under each grade is its PD, the out-of-fold default rate that capital is calculated from. Grade mix stability between out-of-fold and holdout: PSI {{ "%.4f"|format(data.psi) }}.</p>
+</section>
+<div class="controls">
+  <label class="field">Segment
+    <select id="segment">{% for key, label in segments %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select>
+  </label>
+  <label class="field">Loss given default <output id="lgd-value">{{ (card.lgd_default * 100)|round|int }}%</output>
+    <input id="lgd" type="range" min="{{ (card.lgd_floor * 100)|round|int }}" max="100" step="1" value="{{ (card.lgd_default * 100)|round|int }}">
+  </label>
+</div>
+<p id="error" class="error" role="alert"></p>
+<dl class="figures" id="totals"></dl>
+<div class="grid two">
+  <section class="panel"><h2>Grade PD and holdout default rate</h2><p class="panel-note">Bars show the PD each grade carries; dots show what the holdout actually did.</p><div id="grade-chart" class="chart"></div></section>
+  <section class="panel"><h2>Capital intensity by segment</h2><p class="panel-note">Risk-weighted assets as a share of exposure, for the selected segment.</p><div id="segment-chart" class="chart"></div></section>
+</div>
+<section class="panel"><h2>Master scale</h2><div class="table-scroll"><table class="data" id="grade-table"></table></div></section>
+<section class="panel"><h2>Segment view</h2><div class="table-scroll"><table class="data" id="segment-table"></table></div></section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/portfolio.js') }}"></script>{% endblock %}

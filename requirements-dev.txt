@@ -1,0 +1,10 @@
+numpy
+pandas
+pyarrow
+scipy
+lightgbm
+xgboost
+flask
+pytest
+jupytext
+huggingface_hub

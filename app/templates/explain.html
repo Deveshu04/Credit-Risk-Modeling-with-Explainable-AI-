@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Explainability | Credit Risk XAI{% endblock %}
+{% block content %}
+<section>
+  <h1>Explainability</h1>
+  <p class="lede">Exact TreeSHAP values from both models, combined with the same weight as the predictions, on a stratified holdout subsample. Values are in log-odds of default: positive values push risk up, negative values push it down.</p>
+</section>
+<div class="grid two">
+  <section class="panel"><h2>Global importance</h2><p class="panel-note">Mean absolute SHAP value, top 20 features, labelled with their source table.</p><div id="global" class="chart tall"></div></section>
+  <section class="panel"><h2>Effect by feature value</h2><p class="panel-note">Each dot is one applicant. Colour shows where the feature value sits, from low to high.</p><div id="beeswarm" class="chart tall"></div></section>
+</div>
+<section class="panel">
+  <div class="controls">
+    <label class="field">Dependence plot for
+      <select id="dependence-feature">
+        {% for name in data.dependence %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
+      </select>
+    </label>
+  </div>
+  <div id="dependence" class="chart"></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/explain.js') }}"></script>{% endblock %}

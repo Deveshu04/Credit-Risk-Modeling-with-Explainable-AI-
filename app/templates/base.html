@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Credit Risk XAI{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.3/plotly.min.js" integrity="sha512-7H/XbvOmUsf6mawBvmmx9BsPt9ew2NTwQ3QDSzNe6iyacDbCJU+7pBbZY1NdmTpuj7snxSsXasMYMiR2tv906g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap masthead-inner">
+      <a class="brand" href="{{ url_for('model_page') }}">Credit Risk XAI</a>
+      <nav aria-label="Sections">
+        <a href="{{ url_for('model_page') }}"{% if active == 'model' %} aria-current="page"{% endif %}>Model</a>
+        <a href="{{ url_for('explain_page') }}"{% if active == 'explain' %} aria-current="page"{% endif %}>Explainability</a>
+        <a href="{{ url_for('portfolio_page') }}"{% if active == 'portfolio' %} aria-current="page"{% endif %}>Portfolio</a>
+        <a href="{{ url_for('applicant_page') }}"{% if active == 'applicant' %} aria-current="page"{% endif %}>Applicant</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="wrap footer">
+    <p>Home Credit Default Risk data. Sealed holdout of {{ "{:,}".format(metrics.n_holdout) }} applicants. LightGBM and XGBoost blend, exact TreeSHAP explanations, Basel IRB capital for other retail exposures.</p>
+  </footer>
+  <script id="page-data" type="application/json">{{ data | tojson }}</script>
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

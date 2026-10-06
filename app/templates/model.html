@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Model performance | Credit Risk XAI{% endblock %}
+{% block content %}
+<section>
+  <h1>Model performance</h1>
+  <p class="lede">A blend of LightGBM and XGBoost trained on {{ "{:,}".format(metrics.n_train) }} applicants with 5-fold cross-validation, then scored once on a sealed holdout of {{ "{:,}".format(metrics.n_holdout) }}. Probabilities of default are calibrated on out-of-fold predictions with {{ "Platt scaling" if metrics.calibration_method == "platt" else "isotonic regression" }}.</p>
+</section>
+<dl class="figures">
+  <div class="figure"><dt>Holdout AUC</dt><dd class="value">{{ "%.4f"|format(metrics.holdout.blend.auc) }}</dd><dd class="note">{{ "meets" if metrics.holdout.blend.auc >= metrics.target_auc else "below" }} the {{ metrics.target_auc }} benchmark</dd></div>
+  <div class="figure"><dt>Gini</dt><dd class="value">{{ "%.4f"|format(metrics.holdout.blend.gini) }}</dd><dd class="note">holdout</dd></div>
+  <div class="figure"><dt>KS statistic</dt><dd class="value">{{ "%.4f"|format(metrics.holdout.blend.ks) }}</dd><dd class="note">holdout</dd></div>
+  <div class="figure"><dt>Brier score</dt><dd class="value">{{ "%.4f"|format(metrics.holdout_brier_calibrated) }}</dd><dd class="note">calibrated PD, holdout</dd></div>
+  <div class="figure"><dt>Cross-validated AUC</dt><dd class="value">{{ "%.4f"|format(metrics.cv.blend.auc) }}</dd><dd class="note">fold std {{ "%.4f"|format(metrics.cv_fold_auc_std) }}</dd></div>
+  <div class="figure"><dt>Features</dt><dd class="value">{{ metrics.n_features }}</dd><dd class="note">after pruning</dd></div>
+</dl>
+<div class="grid two">
+  <section class="panel"><h2>ROC curve</h2><p class="panel-note">Holdout applicants. Legend shows each model's AUC.</p><div id="roc" class="chart"></div></section>
+  <section class="panel"><h2>Precision and recall</h2><p class="panel-note">Holdout applicants, blended model.</p><div id="pr" class="chart"></div></section>
+  <section class="panel"><h2>Calibration</h2><p class="panel-note">Mean predicted PD against observed default rate, holdout PD deciles.</p><div id="calibration" class="chart"></div></section>
+  <section class="panel"><h2>AUC by fold</h2><p class="panel-note">Out-of-fold AUC for each of the five cross-validation folds.</p><div id="folds" class="chart"></div></section>
+</div>
+<section class="panel">
+  <h2>Model comparison</h2>
+  <div class="table-scroll">
+    <table class="data">
+      <thead><tr><th>Model</th><th class="num">CV AUC</th><th class="num">Holdout AUC</th><th class="num">Gini</th><th class="num">KS</th><th class="num">PR-AUC</th><th class="num">Brier</th></tr></thead>
+      <tbody>
+        <tr><td>Logistic regression baseline</td><td class="num">{{ "%.4f"|format(metrics.baselines.logistic_cv_auc) }}</td><td class="num muted" colspan="5">cross-validation only</td></tr>
+        <tr><td>LightGBM, default settings</td><td class="num">{{ "%.4f"|format(metrics.baselines.lgbm_default_cv_auc) }}</td><td class="num muted" colspan="5">cross-validation only</td></tr>
+        {% for key, label in [("lgbm", "LightGBM, tuned"), ("xgb", "XGBoost, tuned"), ("blend", "Blend")] %}
+        <tr{% if key == "blend" %} class="strong"{% endif %}>
+          <td>{{ label }}</td>
+          <td class="num">{{ "%.4f"|format(metrics.cv[key].auc) }}</td>
+          <td class="num">{{ "%.4f"|format(metrics.holdout[key].auc) }}</td>
+          <td class="num">{{ "%.4f"|format(metrics.holdout[key].gini) }}</td>
+          <td class="num">{{ "%.4f"|format(metrics.holdout[key].ks) }}</td>
+          <td class="num">{{ "%.4f"|format(metrics.holdout[key].pr_auc) }}</td>
+          <td class="num">{{ "%.4f"|format(metrics.holdout[key].brier) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Brier in this table uses each model's raw probability. After calibration the blend's holdout Brier score is {{ "%.4f"|format(metrics.holdout_brier_calibrated) }}.</p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/model.js') }}"></script>{% endblock %}
