@@ -38,10 +38,25 @@
           <td class="num">{{ "%.4f"|format(metrics.holdout[key].brier) }}</td>
         </tr>
         {% endfor %}
+        {% set fair = metrics.without_protected %}
+        {% if fair %}
+        <tr>
+          <td>Blend without gender and family status</td>
+          <td class="num">{{ "%.4f"|format(fair.cv.auc) }}</td>
+          <td class="num">{{ "%.4f"|format(fair.holdout.auc) }}</td>
+          <td class="num">{{ "%.4f"|format(fair.holdout.gini) }}</td>
+          <td class="num">{{ "%.4f"|format(fair.holdout.ks) }}</td>
+          <td class="num">{{ "%.4f"|format(fair.holdout.pr_auc) }}</td>
+          <td class="num">{{ "%.4f"|format(fair.holdout.brier) }}</td>
+        </tr>
+        {% endif %}
       </tbody>
     </table>
   </div>
   <p class="note">Brier in this table uses each model's raw probability. After calibration the blend's holdout Brier score is {{ "%.4f"|format(metrics.holdout_brier_calibrated) }}.</p>
+  {% if fair %}
+  <p class="note">The served model uses the competition data as given, which includes {{ fair.removed|join(" and ") }}. Fair-lending rules treat sex and marital status as protected attributes, so a production model would exclude them. The last row repeats the same training procedure without them and scores the same holdout: the holdout AUC changes by {{ "%+.4f"|format(fair.holdout.auc - metrics.holdout.blend.auc) }}.</p>
+  {% endif %}
 </section>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/model.js') }}"></script>{% endblock %}

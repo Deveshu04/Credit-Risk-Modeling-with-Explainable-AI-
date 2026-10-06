@@ -24,8 +24,25 @@ PAGE_KEYS = {
 }
 
 
+def ensure_artifacts(artifact_dir, repo_id, token, download):
+    artifact_dir = Path(artifact_dir)
+    if (artifact_dir / "scorecard.json").exists():
+        return artifact_dir
+    if not repo_id:
+        raise FileNotFoundError(f"no artifacts in {artifact_dir}; set ARTIFACT_REPO to download them")
+    download(repo_id=repo_id, repo_type="model", local_dir=str(artifact_dir), token=token)
+    return artifact_dir
+
+
+def hub_download(**kwargs):
+    from huggingface_hub import snapshot_download
+
+    return snapshot_download(**kwargs)
+
+
 def create_app(artifact_dir=None):
     artifact_dir = Path(artifact_dir or os.environ.get("ARTIFACT_DIR", ROOT / "artifacts"))
+    ensure_artifacts(artifact_dir, os.environ.get("ARTIFACT_REPO"), os.environ.get("HF_TOKEN"), hub_download)
     app = Flask(__name__)
     model = RiskModel(artifact_dir)
     charts = json.loads((artifact_dir / "charts.json").read_text(encoding="utf-8"))

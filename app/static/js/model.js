@@ -8,10 +8,11 @@ function render() {
   const m = data.metrics;
   plot("roc", [
     diagonal(),
-    ...order.map((k) => ({
+    ...[...order].reverse().map((k) => ({
       x: data.roc[k].fpr, y: data.roc[k].tpr, mode: "lines",
       name: `${names[k]}, AUC ${fmt.num(m.holdout[k].auc, 4)}`,
-      line: { color: seriesColor(k), width: 2 },
+      legendrank: order.indexOf(k) + 1,
+      line: { color: seriesColor(k), width: k === "blend" ? 2.5 : 1.5, dash: k === "blend" ? "solid" : "dot" },
       hovertemplate: `${names[k]}<br>false positive rate %{x:.3f}<br>true positive rate %{y:.3f}<extra></extra>`,
     })),
   ], { xaxis: { title: { text: "False positive rate" }, range: [0, 1] }, yaxis: { title: { text: "True positive rate" }, range: [0, 1] } });

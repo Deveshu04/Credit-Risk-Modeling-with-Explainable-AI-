@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: credit-risk-xai
+    runtime: docker
+    plan: free
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: ./app
+    healthCheckPath: /
+    envVars:
+      - key: ARTIFACT_REPO
+        value: deveshu/credit-risk-xai-artifacts
+      - key: HF_TOKEN
+        sync: false

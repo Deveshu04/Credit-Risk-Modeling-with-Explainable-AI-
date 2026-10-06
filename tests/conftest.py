@@ -37,6 +37,7 @@ def synthetic_charts(grades):
             "baselines": {"logistic_cv_auc": 0.74, "logistic_cv_std": 0.004, "lgbm_default_cv_auc": 0.76, "lgbm_default_cv_std": 0.003, "lgbm_default_rounds": 200},
             "n_train": 2400, "n_holdout": 600, "n_features": len(FEATURES), "target_auc": 0.797,
             "holdout_brier_calibrated": 0.068, "calibration_method": "platt",
+            "without_protected": {"removed": ["CODE_GENDER", "NAME_FAMILY_STATUS"], "w_lgbm": 0.7, "cv": scores, "holdout": scores},
         },
         "roc": {m: {"fpr": [0.0, 0.1, 0.4, 1.0], "tpr": [0.0, 0.3, 0.7, 1.0]} for m in models},
         "pr": {"blend": {"recall": [1.0, 0.5, 0.0], "precision": [0.08, 0.2, 1.0]}},
