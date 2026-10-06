@@ -4,7 +4,7 @@ An end-to-end probability of default (PD) model on the Home Credit Default Risk 
 
 ## Results
 
-All 307,511 labelled applicants are used. A stratified 20% holdout (61,503 applicants, seed 42) was fixed before any model existed and scored exactly once.
+All 307,511 labelled applicants are used. A stratified 20% holdout (61,503 applicants, seed 42) was fixed before any model existed and is used only for final evaluation, never for any modelling choice.
 
 | Metric | Value |
 |---|---|
@@ -68,19 +68,19 @@ Chaining removes that coupling. Each stage writes its outputs once and later sta
 
 ## Design decisions
 
-**Holdout protocol.** The 80/20 split is stratified on the target with seed 42 and fixed in notebook 2, before any model exists. Feature pruning, tuning, the blend weight, the refit length, calibration and the grade cut-offs are all chosen on training data, mostly on out-of-fold predictions. The holdout is scored once, in notebook 4.
+**Holdout protocol.** The 80/20 split is stratified on the target with seed 42 and fixed in notebook 2, before any model exists. Feature pruning, tuning, the blend weight, the refit length, calibration and the grade cut-offs are all chosen on training data, mostly on out-of-fold predictions. The holdout is scored only by the final refit models in notebook 4 (the served blend and the protected-attribute comparison), after every choice is fixed.
 
 **Tuning on CPU.** Kaggle's GPU quota was not available, so tuning was designed for four CPU cores. Optuna's TPE sampler searches at learning rate 0.1 to keep trials short, XGBoost is tuned on a stratified half of the training rows because its histogram method is slower on CPU, and the 113 features that no default LightGBM fold model ever split on are dropped first. Final training then reuses the tuned tree settings at learning rate 0.02 on 5 folds. Both studies plateaued well before their budgets ran out (LightGBM found its best region by trial 6), so more trials would likely add little.
 
 **Blending in log-odds.** The blend is `0.70 * LightGBM + 0.30 * XGBoost` on raw margins, with the weight chosen on out-of-fold AUC. Blending margins rather than probabilities keeps SHAP values additive: the blended explanation plus the base value equals the blended prediction exactly.
 
-**Calibration.** Platt scaling and isotonic regression were compared by 5-fold cross-validated Brier score on out-of-fold margins, and Platt won narrowly (0.065383 against 0.065400). Calibrated PDs match observed default rates within 0.4 percentage points in every holdout decile, and the holdout mean PD is 8.08% against 8.07% observed.
+**Calibration.** Platt scaling and isotonic regression were compared by 5-fold cross-validated Brier score on out-of-fold margins, and Platt won narrowly (0.065383 against 0.065400). Calibrated PDs match observed default rates within 0.7 percentage points in every holdout decile (the largest gap, 0.66 points, is in the ninth decile), and the holdout mean PD is 8.08% against 8.07% observed.
 
 **Score scaling.** PD converts to points as `Score = Offset + Factor * ln(odds)`, with 600 points at good-to-bad odds of 50:1 and 20 points to double the odds, a common industry anchor. Holdout scores run from 432 to 671.
 
 **Master scale.** Ten grades are cut at the out-of-fold score deciles, with a rule to merge neighbours if default rates ever failed to rise (none needed merging). Each grade's PD is its pooled out-of-fold default rate, from 0.80% in grade 1 to 30.88% in grade 10. Capital uses the pooled grade PD, as the IRB approach does for retail pools.
 
-**Floors.** PDs are floored at 0.05%, the Basel III floor for retail exposures, and LGD defaults to 45% with a 25% floor, the Basel III floor for unsecured retail. The dashboard lets you move LGD between 25% and 100%.
+**Floors.** PDs are floored at 0.05%, the Basel III floor for retail exposures, and LGD defaults to 45% with a 30% floor, the Basel III A-IRB floor for other unsecured retail exposures. The dashboard lets you move LGD between 30% and 100%. Revolving loans are treated as other retail for simplicity; under the IRB rules they could qualify as qualifying revolving retail exposures, which use a fixed 4% asset correlation, a 50% LGD floor and a 0.10% PD floor for revolvers. No grade PD here is below 0.8%, so the PD floors never bind.
 
 **Capital.** Risk-weighted assets follow the Basel IRB formula for other retail exposures: asset correlation between 3% and 16% depending on PD, the 99.9% conditional default rate, no maturity adjustment, `RWA = 12.5 * K * EAD` with exposure at default equal to the credit amount. A unit test checks `K` against an independently computed value (PD 1% and LGD 45% give K = 0.03661818, a 45.77% risk weight). At 45% LGD the holdout portfolio's RWA density is 68.6%, with risk weights rising from 41% in grade 1 to 116% in grade 10.
 
@@ -110,21 +110,25 @@ Without them the model still meets the 0.797 benchmark, so the two attributes ad
 
 1. Accept the Home Credit Default Risk competition rules on Kaggle and authenticate the Kaggle CLI.
 2. Create a Python 3.12 virtual environment and install `requirements-dev.txt`.
-3. Push and run the notebooks in order with the helper, waiting for each to finish:
+3. In every `notebooks/*/kernel-metadata.json`, replace the `deveshupathak` owner in `id` and `kernel_sources` with your Kaggle username. The metadata keeps each notebook private on Kaggle.
+4. Push the committed notebooks to Kaggle in order, 01 to 05, waiting for each run to finish before starting the next, since each one reads the previous outputs:
    ```bash
-   python scripts/run_notebook.py push 02-features
+   python scripts/run_notebook.py push 01-eda
    ```
-   `wait`, `fetch` and `compare` follow the same pattern, and `push --smoke` runs a quick check on a subsample first.
-4. Copy notebook 05's `artifacts/` folder into `app/artifacts/`, then run the tests:
+   ```bash
+   python scripts/run_notebook.py wait 01-eda
+   ```
+   Pushing reruns the notebook on Kaggle. `push --smoke` runs a quick check on a subsample first, and `fetch` downloads a run's printed output and figures.
+5. Download notebook 05's `artifacts/` output into `app/artifacts/`, then run the tests:
    ```bash
    python -m pytest
    ```
-5. Run the dashboard locally:
+6. Run the dashboard locally:
    ```bash
    python -m flask --app "app/server.py:create_app()" run --port 7860
    ```
 
-To deploy, upload the artifacts to a private Hugging Face model repo with `scripts/upload_artifacts.py`, create a Render service from `render.yaml`, and set `HF_TOKEN` to a read token in Render's environment settings.
+To deploy your own copy, set your repository name in `scripts/upload_artifacts.py` and in `ARTIFACT_REPO` in `render.yaml`, upload the artifacts to a private Hugging Face model repo with that script, create a Render service from `render.yaml`, and set `HF_TOKEN` to a read token in Render's environment settings.
 
 ## Repository layout
 

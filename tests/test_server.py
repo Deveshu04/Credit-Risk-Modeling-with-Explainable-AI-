@@ -54,9 +54,33 @@ def test_score_bad_input(client, payload):
     assert resp.status_code == 400 and "error" in strict(resp)
 
 
+@pytest.mark.parametrize("body", [
+    '{"id": 100001, "overrides": false}',
+    '{"id": 100001, "overrides": 0}',
+    '{"id": 100001, "overrides": ""}',
+    '{"id": 100001, "overrides": []}',
+    '{"id": 100001, "overrides": {"EXT_MEAN": true}}',
+    '{"id": 100001, "overrides": {"EXT_MEAN": NaN}}',
+    '{"id": 100001, "overrides": {"EXT_MEAN": 1' + "0" * 400 + "}}",
+    '{"id": 100001, "lgd": 1' + "0" * 400 + "}",
+])
+def test_score_rejects_malformed_values(client, body):
+    resp = client.post("/api/score", data=body, content_type="application/json")
+    assert resp.status_code == 400 and "error" in strict(resp)
+
+
+def test_score_clips_huge_finite_override(client):
+    resp = client.post("/api/score", data='{"id": 100001, "overrides": {"EXT_MEAN": 100000000000000000000}}', content_type="application/json")
+    assert resp.status_code == 200 and strict(resp)["clipped"] == ["EXT_MEAN"]
+
+
+def test_score_without_overrides_key(client):
+    assert client.post("/api/score", json={"id": FIRST}).status_code == 200
+
+
 def test_portfolio_route(client):
     body = strict(client.get("/api/portfolio?segment=AGE_BAND&lgd=0.1"))
-    assert body["lgd"] == 0.25 and body["segment"] == "AGE_BAND" and body["grades"]
+    assert body["lgd"] == 0.30 and body["segment"] == "AGE_BAND" and body["grades"]
 
 
 @pytest.mark.parametrize("query", ["segment=NOPE", "lgd=abc", "lgd=nan", "lgd=inf"])

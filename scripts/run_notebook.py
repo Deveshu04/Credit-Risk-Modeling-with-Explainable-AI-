@@ -24,23 +24,24 @@ def kernel_id(name):
 
 
 def build(name):
-    path = folder(name)
-    subprocess.run([sys.executable, "-m", "jupytext", "--to", "ipynb", str(path / f"{name}.py")], check=True)
+    source = folder(name) / f"{name}.py"
+    if source.exists():
+        subprocess.run([sys.executable, "-m", "jupytext", "--to", "ipynb", str(source)], check=True)
 
 
 def push(name, smoke):
     build(name)
     notebook = folder(name) / f"{name}.ipynb"
+    original = notebook.read_text(encoding="utf-8")
     if smoke:
-        text = notebook.read_text(encoding="utf-8")
-        if SWITCH not in text:
+        if SWITCH not in original:
             sys.exit(f"{name} has no smoke switch")
-        notebook.write_text(text.replace(SWITCH, "SMOKE = True"), encoding="utf-8")
+        notebook.write_text(original.replace(SWITCH, "SMOKE = True"), encoding="utf-8")
     try:
         result = subprocess.run(["kaggle", "kernels", "push", "-p", str(folder(name))], capture_output=True, text=True)
     finally:
         if smoke:
-            build(name)
+            notebook.write_text(original, encoding="utf-8")
     output = (result.stdout + result.stderr).strip()
     print(output)
     if result.returncode != 0 or "error" in output.lower():

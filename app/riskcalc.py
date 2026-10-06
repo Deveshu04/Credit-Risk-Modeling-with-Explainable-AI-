@@ -45,5 +45,5 @@ def expected_loss(pd_, lgd, ead):
     return np.asarray(pd_, dtype=float) * lgd * np.asarray(ead, dtype=float)
 
 
-def clamp_lgd(lgd, floor=0.25):
+def clamp_lgd(lgd, floor=0.30):
     return float(min(max(float(lgd), floor), 1.0))

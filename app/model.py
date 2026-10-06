@@ -1,4 +1,5 @@
 import json
+import math
 import threading
 from pathlib import Path
 
@@ -53,7 +54,7 @@ class RiskModel:
         self.row_of = {int(i): n for n, i in enumerate(self.sample.index)}
         self.portfolio = pd.read_parquet(root / "portfolio.parquet")
         self.lock = threading.Lock()
-        self.sample_grade = self.grades(self.matrix)
+        self.sample_grade = self.portfolio.set_index("SK_ID_CURR").loc[self.sample.index, "GRADE"].to_numpy()
 
     def _dmatrix(self, X):
         return xgb.DMatrix(X, feature_names=self.features)
@@ -105,7 +106,13 @@ class RiskModel:
         for name, value in overrides.items():
             if name not in self.index:
                 raise ValidationError(f"unknown feature: {name}")
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not np.isfinite(value):
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ValidationError(f"value for {name} must be a finite number")
+            try:
+                value = float(value)
+            except OverflowError:
+                raise ValidationError(f"value for {name} must be a finite number") from None
+            if not math.isfinite(value):
                 raise ValidationError(f"value for {name} must be a finite number")
             j = self.index[name]
             new = float(np.clip(value, self.low[j], self.high[j]))

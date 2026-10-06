@@ -56,7 +56,7 @@ def create_app(artifact_dir=None):
             raise ValidationError("lgd must be a number")
         try:
             value = float(raw)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             raise ValidationError("lgd must be a number") from None
         if not np.isfinite(value):
             raise ValidationError("lgd must be a finite number")
@@ -105,7 +105,8 @@ def create_app(artifact_dir=None):
         applicant_id = body["id"]
         if isinstance(applicant_id, bool) or not isinstance(applicant_id, int):
             raise ValidationError("id must be an integer")
-        return jsonify(model.assess(applicant_id, read_lgd(body.get("lgd")), body.get("overrides") or {}))
+        overrides = body.get("overrides")
+        return jsonify(model.assess(applicant_id, read_lgd(body.get("lgd")), {} if overrides is None else overrides))
 
     @app.get("/api/portfolio")
     def portfolio():

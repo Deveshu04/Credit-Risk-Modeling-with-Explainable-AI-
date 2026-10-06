@@ -74,7 +74,7 @@ def artifact_dir(tmp_path_factory):
     grades = [{"grade": g, "pd": float(max(rates.get(g, 0.0), 0.0005)), "score_min": bounds[len(cutoffs) + 1 - g], "score_max": bounds[len(cutoffs) + 2 - g]}
               for g in range(1, len(cutoffs) + 2)]
     scorecard = {"base_score": 600.0, "base_odds": 50.0, "pdo": 20.0, "factor": factor, "offset": offset, "pd_floor": 0.0005,
-                 "lgd_default": 0.45, "lgd_floor": 0.25, "cutoffs": cutoffs, "grades": grades}
+                 "lgd_default": 0.45, "lgd_floor": 0.30, "cutoffs": cutoffs, "grades": grades}
     low, high = X.quantile(0.005), X.quantile(0.995)
     low["NAME_EDUCATION_TYPE"], high["NAME_EDUCATION_TYPE"] = 0.0, 3.0
     features = {"features": FEATURES, "low": low.to_dict(), "high": high.to_dict(), "groups": GROUPS, "categorical": {"NAME_EDUCATION_TYPE": EDUCATION}}

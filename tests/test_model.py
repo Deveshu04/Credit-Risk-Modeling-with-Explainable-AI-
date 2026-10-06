@@ -91,7 +91,7 @@ def test_random_from_grade(model):
 
 def test_portfolio_view_clamps_and_balances(model):
     out = model.portfolio_view("NAME_CONTRACT_TYPE", 0.1)
-    assert out["lgd"] == 0.25
+    assert out["lgd"] == 0.30
     assert sum(g["count"] for g in out["grades"]) == len(model.portfolio)
     assert out["totals"]["rwa"] == pytest.approx(sum(s["rwa"] for s in out["segments"]))
 

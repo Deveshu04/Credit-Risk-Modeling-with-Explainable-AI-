@@ -49,6 +49,6 @@ def test_rwa_and_expected_loss():
 
 
 def test_lgd_clamp():
-    assert riskcalc.clamp_lgd(0.1) == 0.25
+    assert riskcalc.clamp_lgd(0.1) == 0.30
     assert riskcalc.clamp_lgd(1.5) == 1.0
     assert riskcalc.clamp_lgd(0.45) == 0.45

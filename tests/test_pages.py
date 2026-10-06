@@ -14,6 +14,11 @@ def test_model_page_shows_protected_attribute_comparison(client):
     assert "CODE_GENDER" in page
 
 
+def test_whatif_form_skips_browser_range_validation(client):
+    page = client.get("/applicant").get_data(as_text=True)
+    assert '<form id="whatif" novalidate>' in page
+
+
 @pytest.mark.parametrize("path", ["/", "/explainability", "/portfolio", "/applicant"])
 def test_pages_render(client, path):
     resp = client.get(path)
